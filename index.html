@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statut serveur Pronote</title>
+
+<style>
+:root {
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --text: #202431;
+    --muted: #747b8c;
+    --accent: #6658d3;
+    --border: #e5e7ef;
+}
+
+[data-theme="dark"] {
+    --bg: #151720;
+    --surface: #222531;
+    --text: #f2f3f8;
+    --muted: #a5a9b8;
+    --accent: #a99aff;
+    --border: #353949;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .2s, color .2s;
+}
+
+header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+}
+
+main {
+    max-width: 850px;
+    margin: 45px auto;
+    padding: 0 20px;
+}
+
+.intro {
+    margin-bottom: 35px;
+}
+
+.intro h1 {
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.intro p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.article {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.article h2 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.date {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+.content {
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+footer {
+    text-align: center;
+    color: var(--muted);
+    padding: 30px;
+    font-size: 13px;
+}
+
+@media(max-width: 500px) {
+    header {
+        padding: 18px;
+    }
+
+    .intro h1 {
+        font-size: 27px;
+    }
+
+    .article {
+        padding: 19px;
+    }
+}
+</style>
+</head>
+
+<script type="module">
+import { auth, persistenceReady } from "./firebase.js";
+
+import {
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+
+await persistenceReady;
+
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.replace("login.html");
+    }
+});
+</script>
+
+<body>
+
+<header>
+    <div class="logo">Infos serveur Pronote</div>
+
+    <select id="themeSelect" aria-label="Choisir le thème">
+        <option value="dark">Sombre</option>
+        <option value="system">Système</option>
+        <option value="light">Clair</option>
+    </select>
+</header>
+
+<main>
+
+    <section class="intro">
+        <h1>Statut du serveur Pronote</h1>
+        <p>
+            Retrouvez ici les informations du serveur Pronote.
+        </p>
+          <p>Site en construction. Contactez le développeur pour plus d'information.</p>
+      <p>Le lien pour accéder à Pronote :</p>
+      <a href="https://uncouth-peroxide-sublet.ngrok-free.dev/pronote/">Ouvrir Pronote</a>
+    </section>
+
+    <section id="articles"></section>
+
+</main>
+
+<footer>
+    © 2026 — Statut serveur Pronote. Tous droits réservés. By ToyBoy-6
+</footer>
+
+<script>
+
+// =====================================
+// ARTICLES : MODIFIER UNIQUEMENT ICI
+// =====================================
+
+const articles = [
+
+    {
+        titre: "Statut",
+        date: "18 novembre 2026 à 23:03",
+        contenu: `Le serveur est allumé.`
+    },
+
+    {
+        titre: "Informations complémentaires",
+        date: "18 novembre 2026 à 23:04",
+        contenu: `Pas d'informations complémentaires pour le moment.`
+    },
+  
+    {
+        titre: "Statut du site internet",
+        date: "18 novembre 2026 à 23:10",
+        contenu: `Le site internet est en pleine maintenance et configuration.
+Les prochaines mises à jours :
+      - Ajout d'un menu "administrateur du serveur".
+      - (facultatif) ajout d'un automatisme qui collecte les informations du serveur.`
+    }
+
+];
+
+// =====================================
+// AFFICHAGE DES ARTICLES
+// =====================================
+
+const container = document.getElementById("articles");
+
+articles.forEach(article => {
+
+    const element = document.createElement("article");
+    element.className = "article";
+
+    const titre = document.createElement("h2");
+    titre.textContent = article.titre;
+
+    const date = document.createElement("div");
+    date.className = "date";
+    date.textContent = article.date;
+
+    const contenu = document.createElement("div");
+    contenu.className = "content";
+    contenu.textContent = article.contenu;
+
+    element.append(titre, date, contenu);
+    container.appendChild(element);
+
+});
+
+// =====================================
+// GESTION DES THÈMES
+// =====================================
+
+const themeSelect = document.getElementById("themeSelect");
+
+function appliquerTheme(theme) {
+
+    if (theme === "system") {
+        const sombre = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        ).matches;
+
+        document.documentElement.dataset.theme =
+            sombre ? "dark" : "light";
+
+    } else {
+        document.documentElement.dataset.theme = theme;
+    }
+}
+
+themeSelect.addEventListener("change", () => {
+    appliquerTheme(themeSelect.value);
+});
+
+const preferenceSysteme = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+);
+
+preferenceSysteme.addEventListener("change", () => {
+    if (themeSelect.value === "system") {
+        appliquerTheme("system");
+    }
+});
+
+appliquerTheme("dark");
+
+</script>
+
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDc9Irgn2F5fGGI04HTee1-cb_iyRSAyPg",
+    authDomain: "statut-serveur-pronote.firebaseapp.com",
+    databaseURL: "https://statut-serveur-pronote-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "statut-serveur-pronote",
+    storageBucket: "statut-serveur-pronote.firebasestorage.app",
+    messagingSenderId: "819040055890",
+    appId: "1:819040055890:web:76ff814b0ebe406b27e58b",
+    measurementId: "G-48BEEW1XY2"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Pronote</title>
+
+<style>
+:root {
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --text: #202431;
+    --muted: #747b8c;
+    --accent: #6658d3;
+    --border: #e5e7ef;
+}
+
+[data-theme="dark"] {
+    --bg: #151720;
+    --surface: #222531;
+    --text: #f2f3f8;
+    --muted: #a5a9b8;
+    --accent: #a99aff;
+    --border: #353949;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+}
+
+h1 { margin-top: 0; }
+
+p { color: var(--muted); }
+
+input {
+    width: 100%;
+    padding: 13px;
+    margin: 8px 0 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#message {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #d9534f;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login">
+    <h1>Connexion</h1>
+    <p>Connectez-vous pour accéder aux informations du serveur Pronote.</p>
+
+    <form id="loginForm">
+        <label for="email">Adresse e-mail</label>
+        <input type="email" id="email" required autocomplete="username">
+
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" required autocomplete="current-password">
+
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <div id="message"></div>
+</div>
+
+<script type="module">
+import { auth, persistenceReady } from "./firebase.js";
+
+import {
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+
+const form = document.getElementById("loginForm");
+const message = document.getElementById("message");
+
+await persistenceReady;
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.location.replace("index.html");
+    }
+});
+
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    message.textContent = "Connexion en cours...";
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.replace("index.html");
+
+    } catch (error) {
+        console.error(error);
+        message.textContent = "Identifiants incorrects ou connexion impossible.";
+    }
+});
+</script>
+
+</body>
+</html>

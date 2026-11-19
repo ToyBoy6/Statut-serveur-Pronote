@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration - Statut serveur</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --bg: #111318;
+    --panel: #1b1e26;
+    --input: #252936;
+    --text: #f1f3f8;
+    --muted: #a0a7b5;
+    --border: #303542;
+    --accent: #7195ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 25px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+main {
+    max-width: 700px;
+    margin: 35px auto;
+}
+
+h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    margin-bottom: 25px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 18px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin: 18px 0 8px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input);
+    color: var(--text);
+    font: inherit;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+button {
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 18px;
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.1);
+}
+
+.secondary {
+    background: var(--input);
+    border: 1px solid var(--border);
+}
+
+#message {
+    margin-top: 15px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+<main>
+
+    <h1>Administration</h1>
+    <p class="subtitle">Gestion du statut du serveur Pronote</p>
+
+    <section class="panel">
+        <h2>État du serveur</h2>
+
+        <form id="statusForm">
+
+            <label for="statut">Statut actuel</label>
+            <select id="statut">
+                <option value="accessible">Accessible</option>
+                <option value="ferme">Fermé</option>
+                <option value="maintenance">En maintenance</option>
+                <option value="allumage">En cours d'allumage</option>
+                <option value="fermeture">En cours de fermeture</option>
+            </select>
+
+            <label for="sujetMaj">Sujet de la mise à jour</label>
+            <textarea id="sujetMaj" placeholder="Exemple : Intervention technique..."></textarea>
+
+            <label for="dateMaj">Dernière mise à jour</label>
+            <input id="dateMaj" type="text" readonly>
+
+            <button type="submit">Enregistrer le statut</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Informations du site</h2>
+        <p class="subtitle">
+            Ce message pourra être affiché sur la page d'accueil du site.
+        </p>
+
+        <form id="infoForm">
+            <label for="informationSite">Message à afficher</label>
+            <textarea
+                id="informationSite"
+                placeholder="Écris ici les informations destinées aux visiteurs..."
+            ></textarea>
+
+            <button type="submit">Enregistrer l'information</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Session</h2>
+        <p id="userEmail"></p>
+        <button class="secondary" id="logoutBtn">Déconnexion</button>
+    </section>
+
+    <p id="message"></p>
+
+    <footer>Administration du statut serveur Pronote</footer>
+
+</main>
+
+<script type="module">
+import {
+    auth,
+    db,
+    persistenceReady,
+    ref,
+    onValue
+} from "./firebase.js";
+
+import {
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+
+import {
+    update
+} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js";
+
+const admins = [
+    "5rygDlObHBXD1Vzw24M737bXVl82",
+    "3ANuh9ErKTawLo8GCJiNghDjOgI3"
+];
+
+const statut = document.getElementById("statut");
+const sujetMaj = document.getElementById("sujetMaj");
+const dateMaj = document.getElementById("dateMaj");
+const informationSite = document.getElementById("informationSite");
+const message = document.getElementById("message");
+
+let donneesChargees = false;
+
+await persistenceReady;
+
+onAuthStateChanged(auth, user => {
+    if (!user) {
+        location.href = "login.html";
+        return;
+    }
+
+    if (!admins.includes(user.uid)) {
+        location.href = "index.html";
+        return;
+    }
+
+    document.getElementById("userEmail").textContent =
+        "Connecté en tant que : " + user.email;
+
+    onValue(ref(db), snapshot => {
+        const data = snapshot.val() || {};
+
+        statut.value = data.statut || "accessible";
+        sujetMaj.value = data.sujetMaj || "";
+        dateMaj.value = data["dernièreMaj"] || "";
+        informationSite.value = data.informationSite || "";
+
+        donneesChargees = true;
+    });
+});
+
+document.getElementById("statusForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (!auth.currentUser || !admins.includes(auth.currentUser.uid)) return;
+
+    const nouvelleDate = new Date().toLocaleString("fr-FR");
+
+    try {
+        await update(ref(db), {
+            statut: statut.value,
+            "dernièreMaj": nouvelleDate,
+            sujetMaj: sujetMaj.value.trim()
+        });
+
+        message.textContent = "Statut enregistré avec succès.";
+    } catch (error) {
+        message.textContent = "Erreur lors de l'enregistrement : " + error.message;
+    }
+});
+
+document.getElementById("infoForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (!auth.currentUser || !admins.includes(auth.currentUser.uid)) return;
+
+    try {
+        await update(ref(db), {
+            informationSite: informationSite.value.trim()
+        });
+
+        message.textContent = "Information du site enregistrée.";
+    } catch (error) {
+        message.textContent = "Erreur lors de l'enregistrement : " + error.message;
+    }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    location.href = "login.html";
+});
+</script>
+
+</body>
+</html>

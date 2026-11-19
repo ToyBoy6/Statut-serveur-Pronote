@@ -1,0 +1,151 @@
+PROJET — STATUT SERVEUR PRONOTE
+Guide de reprise : index.html et étapes restantes
+Date : 19/11/2026
+
+OBJECTIF
+Terminer la page d'accueil du site pour qu'elle affiche les informations enregistrées depuis admin.html, puis vérifier que l'ensemble du site fonctionne avant de publier les modifications sur GitHub.
+
+ÉTAT ACTUEL DU PROJET
+- firebase.js : connexion à Firebase configurée.
+- login.html : page de connexion fonctionnelle.
+- index.html : page d'accueil avec affichage du statut du serveur et connexion obligatoire.
+- admin.html : page d'administration modifiée avec :
+  - le choix du statut du serveur ;
+  - le sujet de la mise à jour ;
+  - la date de dernière mise à jour ;
+  - un champ « Informations du site ».
+- serveur.json : fichier de données créé précédemment.
+
+IMPORTANT
+Faire une copie de sauvegarde des fichiers avant de les modifier.
+Ne jamais publier de mot de passe, de clé privée, de jeton d'accès ou de fichier contenant des identifiants personnels.
+La configuration Firebase d'une application Web n'est pas un mot de passe : la sécurité doit être assurée par les règles Firebase Realtime Database.
+
+ÉTAPE 1 — AFFICHER L'INFORMATION SUR LA PAGE D'ACCUEIL
+
+1. Ouvrir index.html.
+2. Repérer la zone où les informations principales du serveur sont affichées.
+3. Ajouter l'élément HTML à l'endroit où le message doit apparaître :
+
+   <div id="informationSite"></div>
+
+4. Repérer le code JavaScript qui récupère déjà les données Firebase avec onValue(...).
+5. Dans le callback, après avoir récupéré « data », ajouter :
+
+   document.getElementById("informationSite").textContent =
+       data.informationSite || "";
+
+6. Enregistrer le fichier.
+
+Attention :
+- Ne pas placer cette ligne en dehors du callback qui reçoit les données Firebase.
+- Utiliser textContent et non innerHTML : le message est affiché comme du texte et ne sera pas interprété comme du code HTML.
+- Vérifier que l'élément HTML possède exactement l'identifiant « informationSite ».
+
+ÉTAPE 2 — METTRE EN FORME LE MESSAGE
+
+Dans le CSS de index.html, ajouter une règle adaptée au design existant, par exemple :
+
+   #informationSite {
+       margin-top: 16px;
+       padding: 14px;
+       border-radius: 10px;
+       white-space: pre-wrap;
+   }
+
+Adapter les couleurs, les bordures et les espacements au thème actuel du site.
+Vérifier que le message reste lisible en mode sombre, clair et système.
+Si le message est vide, éviter d'afficher un grand encadré vide.
+
+ÉTAPE 3 — VÉRIFIER LE FONCTIONNEMENT DE L'ACCUEIL
+
+Faire les tests suivants :
+[ ] Ouvrir index.html depuis un hébergement ou un serveur local compatible avec les modules JavaScript (pas directement en file://).
+[ ] Vérifier qu'un utilisateur non connecté est redirigé vers login.html.
+[ ] Se connecter avec un compte autorisé.
+[ ] Vérifier que le statut du serveur s'affiche correctement.
+[ ] Vérifier que le sujet de la mise à jour s'affiche.
+[ ] Vérifier que la date de dernière mise à jour s'affiche.
+[ ] Vérifier que le lien vers Pronote fonctionne lorsque le serveur Pronote est disponible.
+[ ] Vérifier les thèmes sombre, clair et système.
+[ ] Vérifier l'affichage sur téléphone et sur ordinateur.
+
+ÉTAPE 4 — TESTER LA COMMUNICATION ENTRE admin.html ET index.html
+
+1. Ouvrir admin.html avec un compte administrateur.
+2. Modifier le champ « Informations du site » avec un message de test.
+3. Cliquer sur « Enregistrer l'information ».
+4. Ouvrir index.html ou l'actualiser.
+5. Vérifier que le message apparaît.
+6. Modifier le message dans admin.html.
+7. Vérifier que la nouvelle version apparaît sur index.html.
+8. Effacer le message dans admin.html, l'enregistrer et vérifier que l'accueil ne montre plus de message.
+
+ÉTAPE 5 — VÉRIFIER LA SÉCURITÉ FIREBASE
+
+Dans Firebase Console > Realtime Database > Règles, vérifier que les règles publiées réservent l'écriture aux deux administrateurs prévus.
+
+Exemple de règles correspondant à la structure actuelle des données à la racine :
+
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null && (auth.uid === '5rygDlObHBXD1Vzw24M737bXVl82' || auth.uid === '3ANuh9ErKTawLo8GCJiNghDjOgI3')"
+  }
+}
+
+Ne pas remplacer les règles existantes sans vérifier qu'elles correspondent toujours à la structure du projet.
+Après vérification :
+[ ] Un compte connecté non administrateur peut lire les données.
+[ ] Un compte connecté non administrateur ne peut pas modifier les données.
+[ ] Un administrateur peut modifier le statut et l'information du site.
+[ ] Un visiteur non connecté ne peut pas lire les données si les règles exigent une connexion.
+
+À savoir :
+La liste des UID dans le JavaScript sert à adapter l'interface, mais elle ne suffit pas à sécuriser Firebase. Les règles Firebase font foi.
+Le fait de masquer le lien Pronote dans index.html ne protège pas à lui seul le serveur Pronote. Pour protéger réellement Pronote, son accès doit aussi être sécurisé côté serveur ou par un système d'authentification adapté.
+
+ÉTAPE 6 — VÉRIFICATIONS ET AMÉLIORATIONS RESTANTES
+
+[ ] Vérifier que tous les liens du site fonctionnent.
+[ ] Vérifier les messages d'erreur en cas de problème de connexion à Firebase.
+[ ] Vérifier qu'une erreur d'enregistrement est clairement signalée dans admin.html.
+[ ] Vérifier que les champs ne sont pas effacés ou remplacés par une ancienne valeur pendant un enregistrement.
+[ ] Vérifier le rendu mobile.
+[ ] Vérifier le rendu sur ordinateur.
+[ ] Vérifier les textes, accents et intitulés.
+[ ] Vérifier qu'aucune ancienne version du code n'est encore utilisée par erreur.
+[ ] Vérifier que les règles Firebase sont bien publiées.
+
+ÉTAPE 7 — PUBLIER SUR GITHUB
+
+1. Ouvrir le dépôt GitHub du projet.
+2. Vérifier que les fichiers nécessaires sont présents :
+   - index.html
+   - admin.html
+   - login.html
+   - firebase.js
+   - les éventuels fichiers CSS, images ou autres ressources utilisés.
+3. Ajouter les fichiers modifiés.
+4. Relire le diff pour vérifier qu'aucune information privée n'a été ajoutée.
+5. Faire un commit avec un message clair, par exemple :
+   « Ajout de l'affichage des informations du site »
+6. Vérifier le site après publication.
+
+ORDRE CONSEILLÉ POUR REPRENDRE LE TRAVAIL
+
+1. Faire une sauvegarde.
+2. Modifier index.html pour afficher informationSite.
+3. Ajouter la mise en forme.
+4. Tester l'enregistrement depuis admin.html.
+5. Tester l'affichage depuis index.html.
+6. Tester les comptes et les règles Firebase.
+7. Tester sur téléphone et ordinateur.
+8. Publier sur GitHub.
+
+NOTES
+- La valeur enregistrée dans Firebase s'appelle exactement « informationSite ».
+- Les autres données actuelles sont « statut », « dernièreMaj » et « sujetMaj ».
+- Les statuts prévus sont : accessible, ferme, maintenance, allumage et fermeture.
+- Le site utilise des modules JavaScript Firebase : il doit être ouvert depuis un hébergement ou un serveur local compatible.
+- Avancer étape par étape et tester après chaque modification.
